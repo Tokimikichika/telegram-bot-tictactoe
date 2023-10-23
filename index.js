@@ -21,12 +21,13 @@ function displayBoard() {
 }
 
 // Ход бота (минимакс - алгоритм с нулевой суммой)
-function botMove() {
-  let bestMove = minimax(board, 'O'); // Тута 'O' - символ бота
+function botMove(chatId) {
+  let bestMove = minimax(board, 'O');
   board[bestMove.row][bestMove.col] = 'O';
+  bot.sendMessage(chatId, 'Ход бота:\n' + displayBoard());
 }
 
-// Рекурсивного поиска лучшего хода - тот самый минимакс
+// тот самый минимакс
 function minimax(board, playerSymbol) {
   if (checkForWin('X')) {
     return { score: -10 };
@@ -82,7 +83,7 @@ function minimax(board, playerSymbol) {
   return bestMove;
 }
 
-// Проверки есть ли победитель
+//  есть ли победитель
 function checkForWin(symbol) {
   for (let i = 0; i < 3; i++) {
     if (
@@ -147,7 +148,7 @@ function sendInlineKeyboard(chatId) {
 
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
-  const text = 'Добро пожаловать в игру в крестики-нолики! Чтобы начать, вв��дите /play';
+  const text = 'Добро пожаловать в игру в крестики-нолики! Чтобы начать, введите /play';
   bot.sendMessage(chatId, text);
 });
 
@@ -181,7 +182,7 @@ bot.on('callback_query', (callbackQuery) => {
         resetGame();
         sendInlineKeyboard(chatId);
       } else {
-        botMove();
+        botMove(chatId);
         if (checkForWin('O')) {
           bot.sendMessage(chatId, 'Бот победил! Начнем новую игру.');
           resetGame();
