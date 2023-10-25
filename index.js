@@ -10,7 +10,7 @@ const board = [
   [' ', ' ', ' '],
 ];
 
-// Текущего состояния игрового поля
+// Функция отображения текущего состояния игрового поля
 function displayBoard() {
   let boardString = '';
   for (let row of board) {
@@ -20,14 +20,45 @@ function displayBoard() {
   return boardString;
 }
 
-// Ход бота (минимакс - алгоритм с нулевой суммой)
+// Функция проверки победы
+function checkForWin(symbol) {
+  for (let i = 0; i < 3; i++) {
+    if (
+      (board[i][0] === symbol && board[i][1] === symbol && board[i][2] === symbol) ||
+      (board[0][i] === symbol && board[1][i] === symbol && board[2][i] === symbol)
+    ) {
+      return true;
+    }
+  }
+
+  if (
+    (board[0][0] === symbol && board[1][1] === symbol && board[2][2] === symbol) ||
+    (board[0][2] === symbol && board[1][1] === symbol && board[2][0] === symbol)
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+// Функция проверки ничьи
+function isGameDraw() {
+  for (let row of board) {
+    if (row.includes(' ')) {
+      return false;
+    }
+  }
+  return true;
+}
+
+// Функция хода бота (минимакс - алгоритм с нулевой суммой)
 function botMove(chatId) {
   let bestMove = minimax(board, 'O');
   board[bestMove.row][bestMove.col] = 'O';
   bot.sendMessage(chatId, 'Ход бота:\n' + displayBoard());
 }
 
-// тот самый минимакс
+// Минимакс алгоритм
 function minimax(board, playerSymbol) {
   if (checkForWin('X')) {
     return { score: -10 };
@@ -83,60 +114,31 @@ function minimax(board, playerSymbol) {
   return bestMove;
 }
 
-//  есть ли победитель
-function checkForWin(symbol) {
-  for (let i = 0; i < 3; i++) {
-    if (
-      (board[i][0] === symbol && board[i][1] === symbol && board[i][2] === symbol) ||
-      (board[0][i] === symbol && board[1][i] === symbol && board[2][i] === symbol)
-    ) {
-      return true;
-    }
-  }
-
-  if (
-    (board[0][0] === symbol && board[1][1] === symbol && board[2][2] === symbol) ||
-    (board[0][2] === symbol && board[1][1] === symbol && board[2][0] === symbol)
-  ) {
-    return true;
-  }
-
-  return false;
-}
-
-// есть ли ничья
-function isGameDraw() {
-  for (let row of board) {
-    if (row.includes(' ')) {
-      return false;
-    }
-  }
-  return true;
-}
-
+// Функция сброса игры
 function resetGame() {
   board[0] = [' ', ' ', ' '];
   board[1] = [' ', ' ', ' '];
   board[2] = [' ', ' ', ' '];
 }
 
+// Функция отправки inline клавиатуры
 function sendInlineKeyboard(chatId) {
   const inlineKeyboard = {
     inline_keyboard: [
       [
-        { text: '0 0', callback_data: '0 0' },
-        { text: '0 1', callback_data: '0 1' },
-        { text: '0 2', callback_data: '0 2' },
+        { text: '1', callback_data: '0 0' },
+        { text: '2', callback_data: '0 1' },
+        { text: '3', callback_data: '0 2' },
       ],
       [
-        { text: '1 0', callback_data: '1 0' },
-        { text: '1 1', callback_data: '1 1' },
-        { text: '1 2', callback_data: '1 2' },
+        { text: '4', callback_data: '1 0' },
+        { text: '5', callback_data: '1 1' },
+        { text: '6', callback_data: '1 2' },
       ],
       [
-        { text: '2 0', callback_data: '2 0' },
-        { text: '2 1', callback_data: '2 1' },
-        { text: '2 2', callback_data: '2 2' },
+        { text: '7', callback_data: '2 0' },
+        { text: '8', callback_data: '2 1' },
+        { text: '9', callback_data: '2 2' },
       ],
     ],
   };
@@ -146,19 +148,23 @@ function sendInlineKeyboard(chatId) {
   });
 }
 
+// Обработчик команды /start
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
   const text = 'Добро пожаловать в игру в крестики-нолики! Чтобы начать, введите /play';
   bot.sendMessage(chatId, text);
 });
 
+// Обработчик команды /play
 bot.onText(/\/play/, (msg) => {
   const chatId = msg.chat.id;
   const text = 'Игра началась! Вот игровое поле:';
-  bot.sendMessage(chatId, text + '\n' + displayBoard());
-  sendInlineKeyboard(chatId);
+  bot.sendMessage(chatId, text + '\n' + displayBoard(), () => {
+    sendInlineKeyboard(chatId);
+  });
 });
 
+// Обработчик выбора ячейки
 bot.on('callback_query', (callbackQuery) => {
   const chatId = callbackQuery.message.chat.id;
   const data = callbackQuery.data;
@@ -175,22 +181,22 @@ bot.on('callback_query', (callbackQuery) => {
 
       if (checkForWin(playerSymbol)) {
         bot.sendMessage(chatId, `Поздравляем! Игрок ${playerSymbol} победил! Начнем новую игру.`);
-        resetGame();
         sendInlineKeyboard(chatId);
+        resetGame();
       } else if (isGameDraw()) {
         bot.sendMessage(chatId, 'Игра завершилась вничью. Начнем новую игру.');
-        resetGame();
         sendInlineKeyboard(chatId);
+        resetGame();
       } else {
         botMove(chatId);
         if (checkForWin('O')) {
           bot.sendMessage(chatId, 'Бот победил! Начнем новую игру.');
-          resetGame();
           sendInlineKeyboard(chatId);
+          resetGame();
         } else if (isGameDraw()) {
           bot.sendMessage(chatId, 'Игра завершилась вничью. Начнем новую игру.');
-          resetGame();
           sendInlineKeyboard(chatId);
+          resetGame();
         } else {
           sendInlineKeyboard(chatId);
         }
@@ -202,6 +208,7 @@ bot.on('callback_query', (callbackQuery) => {
   }
 });
 
+// Обработчик ошибок
 bot.on('polling_error', (error) => {
   console.log(error);
 });
