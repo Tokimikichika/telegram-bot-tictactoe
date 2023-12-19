@@ -10,6 +10,8 @@ const board = [
   [' ', ' ', ' '],
 ];
 
+const activeGames = {};
+
 let gameBoardString = '';
 
 function displayBoard() {
@@ -152,18 +154,31 @@ bot.onText(/\/start/, (msg) => {
 
 bot.onText(/\/play/, (msg) => {
   const chatId = msg.chat.id;
+  if (activeGames[chatId]) {
+    bot.sendMessage(chatId, 'У вас уже есть активная игра. Завершите ее, чтобы начать новую.');
+    return;
+  };
   const text = 'Игра началась! Вот игровое поле:';
+  
   resetGame();
   bot.sendMessage(chatId, text + '\n' + gameBoardString, {
     reply_markup: JSON.stringify({ remove_keyboard: true }),
   });
   sendInlineKeyboard(chatId);
+  activeGames[chatId] = {
+    board: JSON.parse(JSON.stringify(board)), // Создаем копию игрового поля
+  };
 });
 
 bot.on('callback_query', (callbackQuery) => {
   const chatId = callbackQuery.message.chat.id;
   const data = callbackQuery.data;
   const playerSymbol = 'X';
+
+  if (!activeGames[chatId]) {
+    bot.sendMessage(chatId, 'У вас нет активной игры. Начните новую игру с помощью команды /play.');
+    return;
+  }
 
   const coordinates = data.split(' ');
   if (coordinates.length === 2) {
