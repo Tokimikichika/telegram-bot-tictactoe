@@ -6,11 +6,15 @@
   "scripts": {
     "dev": "nodemon index.js",
     "start": "node index.js"
-
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "node-telegram-bot-api": "^0.63.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.1.1",
+    "eslint": "^9.1.1",
+    "globals": "^15.0.0"
   }
 }

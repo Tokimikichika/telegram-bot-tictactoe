@@ -1,29 +1,20 @@
-const TelegramApi = require('node-telegram-bot-api')
+const TelegramApi = require('node-telegram-bot-api');
 
-const token = '6362367021:AAEVwbVsChw5IwF7EFGeGDwfNcL-dlz-TPo'
-
+const token = '6362367021:AAEVwbVsChw5IwF7EFGeGDwfNcL-dlz-TPo';
 const bot = new TelegramApi(token, { polling: true });
-
-const board = [
-  [' ', ' ', ' '],
-  [' ', ' ', ' '],
-  [' ', ' ', ' '],
-];
 
 const activeGames = {};
 
-let gameBoardString = '';
+// function displayBoard(board) {
+//   let gameBoardString = '';
+//   for (let row of board) {
+//     gameBoardString += row.join(' | ') + '\n';
+//     gameBoardString += '---------\n';
+//   }
+//   return gameBoardString;
+// }
 
-function displayBoard() {
-  gameBoardString = '';
-  for (let row of board) {
-    gameBoardString += row.join(' | ') + '\n';
-    gameBoardString += '---------\n';
-  }
-  return gameBoardString;
-}
-
-function checkForWin(symbol) {
+function checkForWin(board, symbol) {
   for (let i = 0; i < 3; i++) {
     if (
       (board[i][0] === symbol && board[i][1] === symbol && board[i][2] === symbol) ||
@@ -42,9 +33,8 @@ function checkForWin(symbol) {
 
   return false;
 }
-
-function isGameDraw() {
-  for (let row of board) {
+function isGameDraw(board) {
+  for (const row of board) {
     if (row.includes(' ')) {
       return false;
     }
@@ -52,75 +42,18 @@ function isGameDraw() {
   return true;
 }
 
-function botMove(chatId) {
-  let bestMove = minimax(board, 'O');
-  board[bestMove.row][bestMove.col] = 'O';
-  // bot.sendMessage(chatId, 'Ход бота:\n' + gameBoardString);
+function resetGame(chatId) {
+  activeGames[chatId] = {
+    board: [
+      [' ', ' ', ' '],
+      [' ', ' ', ' '],
+      [' ', ' ', ' '],
+    ],
+    currentPlayer: 'X', 
+  };
 }
 
-function minimax(board, playerSymbol) {
-  if (checkForWin('X')) {
-    return { score: -10 };
-  } else if (checkForWin('O')) {
-    return { score: 10 };
-  } else if (isGameDraw()) {
-    return { score: 0 };
-  }
-
-  let availableMoves = [];
-  for (let i = 0; i < 3; i++) {
-    for (let j = 0; j < 3; j++) {
-      if (board[i][j] === ' ') {
-        let move = {};
-        move.row = i;
-        move.col = j;
-        board[i][j] = playerSymbol;
-
-        if (playerSymbol === 'O') {
-          let result = minimax(board, 'X');
-          move.score = result.score;
-        } else {
-          let result = minimax(board, 'O');
-          move.score = result.score;
-        }
-
-        board[i][j] = ' ';
-
-        availableMoves.push(move);
-      }
-    }
-  }
-
-  let bestMove;
-  if (playerSymbol === 'O') {
-    let bestScore = -Infinity;
-    for (let move of availableMoves) {
-      if (move.score > bestScore) {
-        bestScore = move.score;
-        bestMove = move;
-      }
-    }
-  } else {
-    let bestScore = Infinity;
-    for (let move of availableMoves) {
-      if (move.score < bestScore) {
-        bestScore = move.score;
-        bestMove = move;
-      }
-    }
-  }
-
-  return bestMove;
-}
-
-function resetGame() {
-  board[0] = [' ', ' ', ' '];
-  board[1] = [' ', ' ', ' '];
-  board[2] = [' ', ' ', ' '];
-  gameBoardString = displayBoard();
-}
-
-function sendInlineKeyboard(chatId) {
+function sendInlineKeyboard(chatId, board) {
   const inlineKeyboard = {
     inline_keyboard: [
       [
@@ -141,78 +74,141 @@ function sendInlineKeyboard(chatId) {
     ],
   };
 
-  bot.sendMessage(chatId, 'Выберите ячейку для вашего хода:\n', {
+  bot.sendMessage(chatId, 'Сделайте ваш ход:', {
     reply_markup: JSON.stringify(inlineKeyboard),
   });
 }
 
+function minimax(board, playerSymbol) {
+  if (checkForWin(board, 'X')) {
+    return { score: -10 };
+  } else if (checkForWin(board, 'O')) {
+    return { score: 10 };
+  } else if (isGameDraw(board)) {
+    return { score: 0 };
+  }
+
+  const availableMoves = [];
+  for (let i = 0; i < 3; i++) {
+    for (let j = 0; j < 3; j++) {
+      if (board[i][j] === ' ') {
+        const move = { row: i, col: j };
+        board[i][j] = playerSymbol;
+
+        const result = minimax(board, playerSymbol === 'O' ? 'X' : 'O');
+        move.score = result.score;
+
+        board[i][j] = ' '; 
+        availableMoves.push(move); 
+      }
+    }
+  }
+
+  let bestMove;
+  if (playerSymbol === 'O') {
+    let bestScore = -Infinity;
+    for (const move of availableMoves) {
+      if (move.score > bestScore) {
+        bestScore = move.score;
+        bestMove = move;
+      }
+    }
+  } else {
+    let bestScore = Infinity;
+    for (const move of availableMoves) {
+      if (move.score < bestScore) {
+        bestScore = move.score;
+        bestMove = move;
+      }
+    }
+  }
+
+  return bestMove;
+}
+
+// Ход бота
+function botMove(chatId) {
+  const board = activeGames[chatId].board;
+  const bestMove = minimax(board, 'O'); 
+  board[bestMove.row][bestMove.col] = 'O'; 
+}
+
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
-  const text = 'Добро пожаловать в игру в крестики-нолики! Чтобы начать, введите /play';
-  bot.sendMessage(chatId, text);
+  bot.sendMessage(chatId, 'Привет! Для начала игры введите /play.');
 });
 
 bot.onText(/\/play/, (msg) => {
   const chatId = msg.chat.id;
+
   if (activeGames[chatId]) {
-    bot.sendMessage(chatId, 'У вас уже есть активная игра. Завершите ее, чтобы начать новую.');
+    bot.sendMessage(chatId, 'Игра уже запущена. Завершите текущую игру, чтобы начать новую.');
     return;
-  };
-  const text = 'Игра началась! Вот игровое поле:';
-  
-  resetGame();
-  bot.sendMessage(chatId, text + '\n' + gameBoardString, {
-    reply_markup: JSON.stringify({ remove_keyboard: true }),
-  });
-  sendInlineKeyboard(chatId);
-  activeGames[chatId] = {
-    board: JSON.parse(JSON.stringify(board)), // Создаем копию игрового поля
-  };
+  }
+
+  resetGame(chatId); // Сбрасываем игру для данного chatId
+  sendInlineKeyboard(chatId, activeGames[chatId].board); 
 });
 
+// Обработка callback_query
 bot.on('callback_query', (callbackQuery) => {
   const chatId = callbackQuery.message.chat.id;
-  const data = callbackQuery.data;
-  const playerSymbol = 'X';
 
   if (!activeGames[chatId]) {
-    bot.sendMessage(chatId, 'У вас нет активной игры. Начните новую игру с помощью команды /play.');
+    bot.sendMessage(chatId, 'Нет активной игры. Начните новую игру с помощью /play.');
     return;
   }
 
-  const coordinates = data.split(' ');
-  if (coordinates.length === 2) {
-    const row = parseInt(coordinates[0]);
-    const col = parseInt(coordinates[1]);
+  const coordinates = callbackQuery.data.split(' ');
+  const row = parseInt(coordinates[0]);
+  const col = parseInt(coordinates[1]);
 
-    if (row >= 0 && row < 3 && col >= 0 && col < 3 && board[row][col] === ' ') {
-      board[row][col] = playerSymbol;
+  const currentGame = activeGames[chatId];
 
-      if (checkForWin(playerSymbol)) {
-        bot.sendMessage(chatId, `Поздравляем! Игрок ${playerSymbol} победил! Начнем новую игру.`);
-        resetGame();
-      } else if (isGameDraw()) {
-        bot.sendMessage(chatId, 'Игра завершилась вничью. Начнем новую игру.');
-        resetGame();
-      } else {
-        botMove(chatId);
-        if (checkForWin('O')) {
-          bot.sendMessage(chatId, 'Бот победил! Начнем новую игру.');
-          resetGame();
-        } else if (isGameDraw()) {
-          bot.sendMessage(chatId, 'Игра завершилась вничью. Начнем новую игру.');
-          resetGame();
-        }
-      }
-      sendInlineKeyboard(chatId);
-    } else {
-      bot.sendMessage(chatId, 'Некорректный ход. Попробуйте снова.');
-    }
+  if (currentGame.board[row][col] !== ' ') {
+    bot.sendMessage(chatId, 'Эта ячейка уже занята. Выберите другую.');
+    return;
   }
+
+  // Ход игрока
+  currentGame.board[row][col] = 'X';
+
+  if (checkForWin(currentGame.board, 'X')) {
+    bot.sendMessage(chatId, 'Поздравляем! Вы выиграли! Начнем новую игру.');
+    resetGame(chatId);
+    sendInlineKeyboard(chatId, activeGames[chatId].board); 
+    return;
+  }
+
+  if (isGameDraw(currentGame.board)) {
+    bot.sendMessage(chatId, 'Игра закончилась ничьей. Начнем новую игру.');
+    resetGame(chatId);
+    sendInlineKeyboard(chatId, activeGames[chatId].board); 
+    return;
+  }
+
+  // Ход бота
+  botMove(chatId);
+
+  if (checkForWin(currentGame.board, 'O')) {
+    bot.sendMessage(chatId, 'Бот победил! Начнем новую игру.');
+    resetGame(chatId);
+    sendInlineKeyboard(chatId, activeGames[chatId].board); 
+    return;
+  }
+
+  if (isGameDraw(currentGame.board)) {
+    bot.sendMessage(chatId, 'Игра закончилась ничьей. Начнем новую игру.');
+    resetGame(chatId);
+    sendInlineKeyboard(chatId, activeGames[chatId].board); 
+    return;
+  }
+
+  sendInlineKeyboard(chatId, currentGame.board);
 });
 
 bot.on('polling_error', (error) => {
-  console.log(error);
+  console.error('Ошибка опроса:', error);
 });
 
 console.log('Бот запущен');
