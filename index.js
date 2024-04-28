@@ -1,10 +1,20 @@
 const TelegramApi = require('node-telegram-bot-api');
+const http = require('http');
 
 const token = '6362367021:AAEVwbVsChw5IwF7EFGeGDwfNcL-dlz-TPo';
 const bot = new TelegramApi(token, { polling: true });
 
 const activeGames = {};
 
+const PORT = process.env.PORT || 3000; // Убедитесь, что этот порт совпадает с вашим окружением Render
+const server = http.createServer((req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
+  res.end('The Telegram bot is running.'); // Это просто сообщение, подтверждающее работу сервиса
+});
+
+server.listen(PORT, () => {
+  console.log(`HTTP server is running on port ${PORT}`);
+});
 // function displayBoard(board) {
 //   let gameBoardString = '';
 //   for (let row of board) {
