@@ -6,10 +6,10 @@ const bot = new TelegramApi(token, { polling: true });
 
 const activeGames = {};
 
-const PORT = process.env.PORT || 3000; // Убедитесь, что этот порт совпадает с вашим окружением Render
+const PORT = process.env.PORT || 3000; 
 const server = http.createServer((req, res) => {
   res.writeHead(200, { 'Content-Type': 'text/plain' });
-  res.end('The Telegram bot is running.'); // Это просто сообщение, подтверждающее работу сервиса
+  res.end('The Telegram bot is running.'); 
 });
 
 server.listen(PORT, () => {
