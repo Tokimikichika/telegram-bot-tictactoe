@@ -1,73 +1,80 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+# Tix-tak-toe-multiplayer
+Добро пожаловать в Telegram бота "Крестики-Нолики". Этот бот позволяет вам играть в классическую игру "Крестики-Нолики" против бота, который использует стратегию минимакса. Вы можете начать новую игру в любое время, и бот будет автоматически отвечать на ваши ходы.
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Начало работы
+-------------
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+### Установка
 
-## Description
+1.  **Клонируйте репозиторий**:
+    
+    bash
+    
+    Copy code
+    
+    `git clone https://github.com/your-username/tic-tac-toe-telegram-bot.git cd tic-tac-toe-telegram-bot`
+    
+2.  **Установите зависимости**:
+    
+    bash
+    
+    Copy code
+    
+    `npm install`
+    
+3.  **Настройте бота**:
+    
+    *   Создайте бота в Telegram с помощью BotFather.
+    *   Получите токен вашего бота и добавьте его в переменную `token` в файле `index.js`.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+### Запуск
 
-## Installation
+Чтобы запустить бота, используйте команду:
 
-```bash
-$ npm install
-```
+bash
 
-## Running the app
+Copy code
 
-```bash
-# development
-$ npm run start
+`npm start`
 
-# watch mode
-$ npm run start:dev
+Это запустит бота с использованием Telegram API. Бот будет находиться в режиме "polling", чтобы автоматически обрабатывать запросы от пользователей.
 
-# production mode
-$ npm run start:prod
-```
+Использование бота
+------------------
 
-## Test
+### Команда /start
 
-```bash
-# unit tests
-$ npm run test
+Эта команда инициализирует бота и приветствует пользователя.
 
-# e2e tests
-$ npm run test:e2e
+### Команда /play
 
-# test coverage
-$ npm run test:cov
-```
+Эта команда начинает новую игру в "Крестики-Нолики". Если игра уже запущена, бот предупредит пользователя о необходимости завершить текущую игру перед началом новой.
 
-## Support
+### Инлайн-кнопки
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+Во время игры бот отображает инлайн-кнопки, представляющие игровое поле 3x3. Пользователи могут нажимать на кнопки, чтобы сделать ход. Бот автоматически обновляет кнопки в соответствии с ходами игроков и реагирует на действия.
 
-## Stay in touch
+### Завершение игры
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+Если игра завершилась победой игрока или бота, либо ничьей, бот автоматически начнет новую игру. Пользователи могут продолжать игру, нажимая на инлайн-кнопки.
 
-## License
+Особенности
+-----------
 
-Nest is [MIT licensed](LICENSE).
+*   Бот использует стратегию минимакса для принятия решений.
+*   Инлайн-кнопки показывают текущее состояние игры, а поле больше не отображается в текстовом виде.
+*   Бот может обрабатывать несколько активных игр, поэтому разные пользователи могут играть независимо друг от друга.
+
+Обработка ошибок
+----------------
+
+Если возникает ошибка в работе бота, она будет отображена в консоли. Убедитесь, что ваш токен Telegram бота правильный, а зависимости установлены.
+
+Лицензия
+--------
+
+Этот проект распространяется по лицензии MIT.
+
+* * *
+
+Если у вас есть вопросы или предложения по улучшению бота, не стесняйтесь создать запрос в репозитории на GitHub или связаться со мной напрямую. Спасибо, что используете "Крестики-Нолики" для Telegram!
